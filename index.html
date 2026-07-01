@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le taux de boisement en France : évolution par région (2008–2021)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://unpkg.com/@gouvfr/dsfr/dist/dsfr.min.css" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f6f6f6;
+    --surface: #ffffff;
+    --border: #e5e5e5;
+    --text: #161616;
+    --muted: #666666;
+    --accent: #2d6a4f;
+    --c1: #e85d04;   /* Corse */
+    --c2: #1a7abf;   /* PACA */
+    --c3: #1b1b1b;   /* France (moyenne) */
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Marianne', arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 860px;
+    padding: 36px 40px 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .header {
+    margin-bottom: 28px;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* KPI strip */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .kpi-card {
+    padding: 16px 18px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+  }
+
+  .kpi-card.c1 { border-left-color: var(--c1); background: #fff8f5; }
+  .kpi-card.c2 { border-left-color: var(--c2); background: #f0f6fc; }
+  .kpi-card.c3 { border-left-color: var(--c3); background: #f5f5f5; }
+
+  .kpi-age {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .kpi-pct {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 5px;
+  }
+
+  .c1 .kpi-pct { color: var(--c1); }
+  .c2 .kpi-pct { color: var(--c2); }
+  .c3 .kpi-pct { color: var(--c3); }
+
+  .kpi-detail {
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  .kpi-period {
+    font-size: 12px;
+    color: #999;
+    margin-top: 3px;
+    font-style: italic;
+  }
+
+  /* Definition / context note */
+  .context-note {
+    margin-bottom: 16px;
+    padding: 9px 13px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    border-left: 3px solid #cccccc;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* Chart */
+  .chart-wrap {
+    position: relative;
+    height: 400px;
+    margin-bottom: 16px;
+  }
+
+  /* Repère historique national */
+  .history {
+    margin: 4px 0 18px;
+  }
+
+  .history-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 9px;
+  }
+
+  .history-scroll { overflow-x: auto; }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 480px;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 6px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .history-table th { color: var(--muted); font-weight: 600; }
+
+  .history-table th:first-child,
+  .history-table td:first-child {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .history-table .taux-row td { font-weight: 700; color: var(--text); }
+  .history-table .taux-row td:first-child { color: var(--muted); }
+
+  .history-note {
+    font-size: 11.5px;
+    color: #999;
+    font-style: italic;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* Source */
+  .source-block {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 4px;
+    border-left: 3px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .source-block strong { color: #444; font-weight: 700; }
+
+  /* Footnote */
+  .footnote {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    .card { padding: 24px 20px; }
+    .kpi-strip { grid-template-columns: 1fr; }
+    .kpi-pct { font-size: 28px; }
+    .chart-wrap { height: 320px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="header">
+    <div class="eyebrow">Réutilisation des données de l'IGN</div>
+    <h1>La forêt gagne du terrain, région par région (2008–2021)</h1>
+    <p class="subtitle">Taux de boisement : part du territoire couverte par la forêt, en France métropolitaine</p>
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi-card c3">
+      <div class="kpi-age">France Métropolitaine</div>
+      <div class="kpi-pct">+1 pt</div>
+      <div class="kpi-detail">Taux de boisement : 30 % → 31 %</div>
+      <div class="kpi-period">(2008-2012 → 2017-2021)</div>
+    </div>
+    <div class="kpi-card c2">
+      <div class="kpi-age">Provence-Alpes-Côte d'Azur</div>
+      <div class="kpi-pct">+4 pts</div>
+      <div class="kpi-detail">Taux de boisement : 48 % → 52 %</div>
+      <div class="kpi-period">(2008-2012 → 2017-2021)</div>
+    </div>
+    <div class="kpi-card c1">
+      <div class="kpi-age">Corse</div>
+      <div class="kpi-pct">+10 pts</div>
+      <div class="kpi-detail">Taux de boisement : 56 % → 66 %</div>
+      <div class="kpi-period">(2008-2012 → 2017-2021)</div>
+    </div>
+  </div>
+
+  <div class="context-note">
+    La ligne noire en pointillés est la moyenne France métropolitaine : elle sert de repère pour
+    situer chaque région au-dessus ou en dessous du niveau national.
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div class="history">
+    <div class="history-title">À titre de repère : le taux de boisement national depuis 1986</div>
+    <div class="history-scroll">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>1986</th>
+            <th>1991</th>
+            <th>1996</th>
+            <th>2006-2009</th>
+            <th>2008-2012</th>
+            <th>2013-2017</th>
+            <th>2017-2021</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="taux-row">
+            <td>Taux de boisement</td>
+            <td>26 %</td>
+            <td>26 %</td>
+            <td>27 %</td>
+            <td>29 %</td>
+            <td>30 %</td>
+            <td>31 %</td>
+            <td>31 %</td>
+          </tr>
+          <tr>
+            <td>Surface de forêt (1 000 ha)</td>
+            <td>14 172</td>
+            <td>14 502</td>
+            <td>14 842</td>
+            <td>16 073</td>
+            <td>16 418</td>
+            <td>16 845</td>
+            <td>17 076</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="history-note">
+      Toute la forêt, France métropolitaine. Sur le temps long, le taux de boisement progresse de
+      façon continue : de 26 % en 1986 à 31 % aujourd'hui, soit près de 3 millions d'hectares de
+      forêt supplémentaires.
+    </div>
+  </div>
+
+  <div class="source-block">
+    <strong>Source :</strong> <a href="https://foret.ign.fr/IGD/fr/indicateurs/1.1.2" target="_blank" style="color:var(--accent);text-decoration:underline;">IGN, Indicateurs de gestion durable des forêts françaises métropolitaines, indicateur 1.1.2</a> (surface et taux de boisement par région). Données consultées le 1<sup>er</sup> juillet 2026 · Licence Ouverte / Etalab 2.0.
+  </div>
+
+  <div class="footnote">
+    Le taux de boisement est la part de la surface d'une région couverte par la forêt. Il est
+    ici <strong>mesuré</strong> par l'inventaire forestier de l'IGN (et non reconstitué), sur le
+    seul champ de la <strong>France métropolitaine</strong> (hors DROM) ; le total « France »
+    correspond donc à la métropole. Les valeurs sont arrondies au point de pourcentage : quelques
+    régions paraissent stagner ou perdre 1 point par simple effet d'arrondi (Île-de-France,
+    Occitanie), à ne pas sur-interpréter. Le signal solide est la hausse d'ensemble, région
+    par région.
+  </div>
+
+</div>
+
+<script>
+const PERIODES = ['2008-2012', '2013-2017', '2017-2021'];
+
+// Régions de contexte (vert pâle) listées d'abord, régions mises en avant tracées par-dessus.
+const SERIES = [
+  { label: 'Île-de-France',              data: [21, 23, 23], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Centre-Val de Loire',        data: [24, 25, 26], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Normandie',                  data: [14, 14, 14], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Hauts-de-France',            data: [13, 14, 15], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Grand Est',                  data: [33, 34, 34], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Pays de la Loire',           data: [11, 12, 12], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Bretagne',                   data: [14, 15, 16], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Nouvelle-Aquitaine',         data: [33, 34, 34], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Occitanie',                  data: [36, 35, 36], paleColor: 'rgba(90,140,100,0.45)' },
+  { label: 'Bourgogne-Franche-Comté',    data: [36, 36, 37], color: '#6a4c93', endLabel: 'Bourgogne-Franche-Comté' },
+  { label: 'Auvergne-Rhône-Alpes',       data: [35, 36, 36], color: '#2d6a4f', endLabel: 'Auvergne-Rhône-Alpes' },
+  { label: 'France (moyenne)',           data: [30, 31, 31], color: '#1b1b1b', endLabel: 'France (moyenne)', dashed: true },
+  { label: 'Provence-Alpes-Côte d\'Azur', data: [48, 51, 52], color: '#1a7abf', endLabel: 'Provence-Alpes-Côte d\'Azur' },
+  { label: 'Corse',                      data: [56, 62, 66], color: '#e85d04', endLabel: 'Corse' },
+];
+
+const datasets = SERIES.map(s => {
+  const lineColor = s.color ?? s.paleColor;
+  return {
+    label: s.label,
+    data: s.data,
+    borderColor: lineColor,
+    backgroundColor: 'transparent',
+    borderWidth: s.color ? 3 : 1.5,
+    borderDash: s.dashed ? [6, 4] : [],
+    pointRadius: s.color ? 3.5 : 0,
+    pointHoverRadius: s.color ? 6 : 4,
+    pointBackgroundColor: lineColor,
+    tension: 0.25,
+  };
+});
+
+// Police des libellés de bout de courbe (réduite sur petit écran) et marge droite
+// calculée pour que le plus long nom de région ne soit jamais tronqué.
+const END_LABEL_FONT = window.innerWidth < 620
+  ? 'bold 10px Marianne, arial, sans-serif'
+  : 'bold 12px Marianne, arial, sans-serif';
+const _mctx = document.getElementById('chart').getContext('2d');
+_mctx.font = END_LABEL_FONT;
+const RIGHT_PAD = Math.ceil(Math.max(
+  ...SERIES.filter(s => s.endLabel).map(s => _mctx.measureText(s.endLabel).width)
+)) + 16;
+
+// End-label plugin : libellé uniquement pour les courbes mises en avant
+const endLabelPlugin = {
+  id: 'endLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    const points = [];
+    chart.data.datasets.forEach((ds, di) => {
+      const s = SERIES.find(x => x.label === ds.label);
+      if (!s || !s.endLabel) return;
+      const meta = chart.getDatasetMeta(di);
+      const lastPt = meta.data[meta.data.length - 1];
+      if (!lastPt) return;
+      points.push({
+        label: s.endLabel,
+        color: s.color,
+        x: lastPt.x,
+        y: lastPt.y,
+      });
+    });
+
+    points.sort((a, b) => a.y - b.y);
+    const MIN_GAP = 17;
+    for (let i = 1; i < points.length; i++) {
+      if (points[i].y - points[i - 1].y < MIN_GAP) {
+        points[i].y = points[i - 1].y + MIN_GAP;
+      }
+    }
+
+    points.forEach(p => {
+      ctx.save();
+      ctx.font = END_LABEL_FONT;
+      ctx.fillStyle = p.color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.label, p.x + 10, p.y);
+      ctx.restore();
+    });
+  }
+};
+
+const ctx = document.getElementById('chart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  plugins: [endLabelPlugin],
+  data: { labels: PERIODES, datasets },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { right: RIGHT_PAD, top: 8, bottom: 4 } },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        borderColor: '#e5e5e5',
+        borderWidth: 1,
+        titleFont: { family: 'Marianne, arial', size: 13, weight: '700' },
+        bodyFont: { family: 'Marianne, arial', size: 12 },
+        titleColor: '#161616',
+        bodyColor: '#444',
+        padding: 12,
+        cornerRadius: 4,
+        // toutes les régions listées, triées par taux décroissant
+        itemSort(a, b) { return b.raw - a.raw; },
+        callbacks: {
+          title(items) { return `Période ${items[0].label}`; },
+          label(item) {
+            const ref = SERIES.find(s => s.label === item.dataset.label).data[0];
+            const evol = item.raw - ref;
+            const sign = evol >= 0 ? '+' : '−';
+            const name = item.dataset.label;
+            return `  ${name} : ${item.raw} %  (${sign}${Math.abs(evol)} pt vs 2008-2012)`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { color: '#666', font: { family: 'Marianne, arial', size: 11 } }
+      },
+      y: {
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        border: { display: false },
+        min: 0,
+        max: 72,
+        ticks: {
+          color: '#666',
+          font: { family: 'Marianne, arial', size: 11 },
+          callback(v) { return v + ' %'; }
+        },
+        title: {
+          display: true,
+          text: 'Taux de boisement (part du territoire)',
+          color: '#999',
+          font: { family: 'Marianne, arial', size: 11 }
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

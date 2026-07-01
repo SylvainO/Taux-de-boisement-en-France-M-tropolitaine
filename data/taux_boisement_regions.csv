@@ -1,0 +1,57 @@
+region,periode,taux_boisement
+Île-de-France,2006-2009,22
+Île-de-France,2008-2012,21
+Île-de-France,2013-2017,23
+Île-de-France,2017-2021,23
+Centre-Val de Loire,2006-2009,24
+Centre-Val de Loire,2008-2012,24
+Centre-Val de Loire,2013-2017,25
+Centre-Val de Loire,2017-2021,26
+Bourgogne-Franche-Comté,2006-2009,35
+Bourgogne-Franche-Comté,2008-2012,36
+Bourgogne-Franche-Comté,2013-2017,36
+Bourgogne-Franche-Comté,2017-2021,37
+Normandie,2006-2009,13
+Normandie,2008-2012,14
+Normandie,2013-2017,14
+Normandie,2017-2021,14
+Hauts-de-France,2006-2009,13
+Hauts-de-France,2008-2012,13
+Hauts-de-France,2013-2017,14
+Hauts-de-France,2017-2021,15
+Grand Est,2006-2009,33
+Grand Est,2008-2012,33
+Grand Est,2013-2017,34
+Grand Est,2017-2021,34
+Pays de la Loire,2006-2009,10
+Pays de la Loire,2008-2012,11
+Pays de la Loire,2013-2017,12
+Pays de la Loire,2017-2021,12
+Bretagne,2006-2009,13
+Bretagne,2008-2012,14
+Bretagne,2013-2017,15
+Bretagne,2017-2021,16
+Nouvelle-Aquitaine,2006-2009,33
+Nouvelle-Aquitaine,2008-2012,33
+Nouvelle-Aquitaine,2013-2017,34
+Nouvelle-Aquitaine,2017-2021,34
+Occitanie,2006-2009,35
+Occitanie,2008-2012,36
+Occitanie,2013-2017,35
+Occitanie,2017-2021,36
+Auvergne-Rhône-Alpes,2006-2009,34
+Auvergne-Rhône-Alpes,2008-2012,35
+Auvergne-Rhône-Alpes,2013-2017,36
+Auvergne-Rhône-Alpes,2017-2021,36
+Provence-Alpes-Côte d'Azur,2006-2009,47
+Provence-Alpes-Côte d'Azur,2008-2012,48
+Provence-Alpes-Côte d'Azur,2013-2017,51
+Provence-Alpes-Côte d'Azur,2017-2021,52
+Corse,2006-2009,54
+Corse,2008-2012,56
+Corse,2013-2017,62
+Corse,2017-2021,66
+France,2006-2009,29
+France,2008-2012,30
+France,2013-2017,31
+France,2017-2021,31
